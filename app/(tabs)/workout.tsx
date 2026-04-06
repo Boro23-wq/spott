@@ -1,19 +1,97 @@
-import { View, Text, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+import { useState, useEffect } from "react";
+import ExerciseCard from "../../components/ui/ExerciseCard";
+import { getAllExercises, searchExercises } from "../../lib/api/exercises";
+
+type Exercise = {
+  id: string;
+  name: string;
+  category: string | null;
+  equipment: string | null;
+  primaryMuscles: string[] | null;
+  difficulty: string | null;
+};
 
 export default function WorkoutScreen() {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadExercises();
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (query.length > 1) {
+        handleSearch(query);
+      } else if (query.length === 0) {
+        loadExercises();
+      }
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const loadExercises = async () => {
+    setLoading(true);
+    const data = await getAllExercises();
+    setExercises(data as Exercise[]);
+    setLoading(false);
+  };
+
+  const handleSearch = async (text: string) => {
+    setLoading(true);
+    const data = await searchExercises(text);
+    setExercises(data as Exercise[]);
+    setLoading(false);
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Workout</Text>
+      <TextInput
+        style={styles.search}
+        placeholder="Search exercises..."
+        placeholderTextColor="#6B6B6B"
+        value={query}
+        onChangeText={setQuery}
+      />
+
+      {loading ? (
+        <ActivityIndicator color="#FF6B6B" style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          data={exercises}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ExerciseCard
+              exercise={item}
+              onPress={(ex) => console.log("Selected:", ex.name)}
+            />
+          )}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#141414",
-    justifyContent: "center",
-    alignItems: "center",
+  container: { flex: 1, backgroundColor: "#141414", padding: 16 },
+  search: {
+    backgroundColor: "#1F1F1F",
+    color: "#FFFFFF",
+    padding: 14,
+    borderRadius: 12,
+    fontSize: 15,
+    marginBottom: 16,
   },
-  text: { color: "#FFFFFF", fontSize: 24 },
+  list: { paddingBottom: 20 },
 });
