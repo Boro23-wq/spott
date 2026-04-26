@@ -50,3 +50,23 @@ export const workoutSets = pgTable("workout_sets", {
   rpe: integer("rpe"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const routines = pgTable("routines", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const routineExercises = pgTable("routine_exercises", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  routineId: uuid("routine_id").references(() => routines.id),
+  exerciseId: uuid("exercise_id").references(() => exercises.id),
+  exerciseName: text("exercise_name").notNull(),
+  sets: integer("sets").default(3),
+  reps: integer("reps").default(10),
+  rpe: integer("rpe").default(7),
+  orderIndex: integer("order_index").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});

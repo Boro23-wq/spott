@@ -13,6 +13,7 @@ import { getAllExercises, searchExercises } from "../lib/api/exercises";
 import { useWorkout } from "../lib/context/WorkoutContext";
 import { useUser } from "@clerk/clerk-expo";
 import { getLastSession } from "../lib/api/workouts";
+import { useLocalSearchParams } from "expo-router";
 
 type Exercise = {
   id: string;
@@ -30,8 +31,9 @@ export default function ExercisePickerScreen() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const { addExercise, setLastSessionData } = useWorkout();
+  const { addExercise, setLastSessionData, setPendingExercise } = useWorkout();
   const { user } = useUser();
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
 
   useEffect(() => {
     loadExercises();
@@ -79,6 +81,11 @@ export default function ExercisePickerScreen() {
             <ExerciseCard
               exercise={item}
               onPress={async (ex) => {
+                if (mode === "routine") {
+                  setPendingExercise({ id: ex.id, name: ex.name });
+                  router.back();
+                  return;
+                }
                 addExercise(ex.id, ex.name);
                 if (user) {
                   const data = await getLastSession(user.id, ex.id);

@@ -40,6 +40,8 @@ type WorkoutContextType = {
   deleteExercise: (exerciseId: string) => void;
   lastSession: Record<string, any[]>;
   setLastSessionData: (exerciseId: string, data: any[]) => void;
+  pendingExercise: { id: string; name: string } | null;
+  setPendingExercise: (ex: { id: string; name: string } | null) => void;
 };
 
 const WorkoutContext = createContext<WorkoutContextType | null>(null);
@@ -51,6 +53,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [lastSession, setLastSession] = useState<Record<string, any[]>>({});
+  const [pendingExercise, setPendingExercise] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const setLastSessionData = (exerciseId: string, data: any[]) => {
     setLastSession((prev) => ({ ...prev, [exerciseId]: data }));
@@ -202,6 +208,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         deleteExercise,
         lastSession,
         setLastSessionData,
+        pendingExercise,
+        setPendingExercise,
       }}
     >
       {children}

@@ -36,6 +36,7 @@ function InitialLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="active-workout" options={{ headerShown: false }} />
+      <Stack.Screen name="create-routine" options={{ headerShown: false }} />
       <Stack.Screen
         name="exercise-picker"
         options={{
