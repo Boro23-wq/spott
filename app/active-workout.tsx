@@ -10,8 +10,11 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
 import { useState } from "react";
 import { useWorkout } from "../lib/context/WorkoutContext";
+import { saveWorkout } from "../lib/api/workouts";
+import { useUser } from "@clerk/clerk-expo";
 
 type Exercise = {
   id: string;
@@ -29,6 +32,26 @@ export default function ActiveWorkoutScreen() {
   const { exercises, addExercise, addSet, updateSet, endWorkout } =
     useWorkout();
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const { user } = useUser();
+
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (timerSeconds > 0) {
+      timerRef.current = setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current!);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timerSeconds]);
 
   const handleEndWorkout = () => {
     Alert.alert("End Workout", "Are you sure?", [
@@ -36,9 +59,17 @@ export default function ActiveWorkoutScreen() {
       {
         text: "End",
         style: "destructive",
-        onPress: () => {
-          endWorkout();
-          router.back();
+        onPress: async () => {
+          try {
+            if (user && exercises.length > 0) {
+              await saveWorkout(user.id, exercises);
+            }
+          } catch (err) {
+            console.log("Error saving workout:", err);
+          } finally {
+            endWorkout();
+            router.back();
+          }
         },
       },
     ]);
