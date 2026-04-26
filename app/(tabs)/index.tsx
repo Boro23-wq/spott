@@ -1,8 +1,18 @@
 import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
+import { useWorkout } from "../../lib/context/WorkoutContext";
 
 export default function HomeScreen() {
+  const { startWorkout, isActive } = useWorkout();
+  const router = useRouter();
+
+  const handleStartWorkout = () => {
+    startWorkout();
+    router.push("/active-workout");
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
@@ -12,7 +22,10 @@ export default function HomeScreen() {
       </View>
 
       {/* Start Workout CTA */}
-      <Button title="Start Workout" onPress={() => {}} />
+      <Button
+        title={isActive ? "Resume Workout" : "Start Workout"}
+        onPress={handleStartWorkout}
+      />
 
       {/* Stats Row */}
       <View style={styles.statsRow}>

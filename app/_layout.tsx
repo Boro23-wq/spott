@@ -1,7 +1,8 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
-import { Slot, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { WorkoutProvider } from "../lib/context/WorkoutContext";
 import * as SecureStore from "expo-secure-store";
 
 const tokenCache = {
@@ -30,7 +31,21 @@ function InitialLayout() {
     }
   }, [isSignedIn, isLoaded]);
 
-  return <Slot />;
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="active-workout" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="exercise-picker"
+        options={{
+          title: "Add Exercise",
+          headerStyle: { backgroundColor: "#141414" },
+          headerTintColor: "#FFFFFF",
+        }}
+      />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {
@@ -40,7 +55,9 @@ export default function RootLayout() {
         publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
         tokenCache={tokenCache}
       >
-        <InitialLayout />
+        <WorkoutProvider>
+          <InitialLayout />
+        </WorkoutProvider>
       </ClerkProvider>
     </GestureHandlerRootView>
   );
