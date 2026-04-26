@@ -4,12 +4,15 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Text,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import ExerciseCard from "../components/ui/ExerciseCard";
 import { getAllExercises, searchExercises } from "../lib/api/exercises";
 import { useWorkout } from "../lib/context/WorkoutContext";
+import { useUser } from "@clerk/clerk-expo";
+import { getLastSession } from "../lib/api/workouts";
 
 type Exercise = {
   id: string;
@@ -24,10 +27,11 @@ type Exercise = {
 
 export default function ExercisePickerScreen() {
   const router = useRouter();
-  const { addExercise } = useWorkout();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const { addExercise, setLastSessionData } = useWorkout();
+  const { user } = useUser();
 
   useEffect(() => {
     loadExercises();
@@ -59,7 +63,7 @@ export default function ExercisePickerScreen() {
     <View style={styles.container}>
       <TextInput
         style={styles.search}
-        placeholder="Search exercises..."
+        placeholder="Search exercisess..."
         placeholderTextColor="#6B6B6B"
         value={query}
         onChangeText={setQuery}
@@ -74,8 +78,12 @@ export default function ExercisePickerScreen() {
           renderItem={({ item }) => (
             <ExerciseCard
               exercise={item}
-              onPress={(ex) => {
+              onPress={async (ex) => {
                 addExercise(ex.id, ex.name);
+                if (user) {
+                  const data = await getLastSession(user.id, ex.id);
+                  if (data) setLastSessionData(ex.id, data);
+                }
                 router.back();
               }}
             />

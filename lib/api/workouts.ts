@@ -74,3 +74,38 @@ async function saveWorkoutForUser(userId: string, exercises: ExerciseInput[]) {
 
   return workout;
 }
+
+export async function getLastSession(clerkId: string, exerciseId: string) {
+  const { data: userData, error: userError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("clerk_id", clerkId)
+    .single();
+
+  if (userError || !userData) return null;
+
+  const userId = userData.id;
+
+  const { data: userWorkouts, error: workoutsError } = await supabase
+    .from("workouts")
+    .select("id")
+    .eq("user_id", userId)
+    .order("completed_at", { ascending: false });
+
+  if (workoutsError || !userWorkouts || userWorkouts.length === 0) return null;
+
+  const workoutIds = userWorkouts.map((w) => w.id);
+
+  const { data, error } = await supabase
+    .from("workout_sets")
+    .select("reps, weight, rpe, set_number, workout_id")
+    .eq("exercise_id", exerciseId)
+    .in("workout_id", workoutIds)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error || !data || data.length === 0) return null;
+
+  const lastWorkoutId = data[0].workout_id;
+  return data.filter((s) => s.workout_id === lastWorkoutId);
+}
