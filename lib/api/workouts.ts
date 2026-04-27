@@ -109,3 +109,53 @@ export async function getLastSession(clerkId: string, exerciseId: string) {
   const lastWorkoutId = data[0].workout_id;
   return data.filter((s) => s.workout_id === lastWorkoutId);
 }
+
+export async function getUserStats(clerkId: string) {
+  const { data: userData } = await supabase
+    .from("users")
+    .select("id")
+    .eq("clerk_id", clerkId)
+    .single();
+
+  if (!userData) return null;
+
+  const { data: workouts } = await supabase
+    .from("workouts")
+    .select("completed_at")
+    .eq("user_id", userData.id)
+    .order("completed_at", { ascending: false });
+
+  if (!workouts) return null;
+
+  const total = workouts.length;
+
+  // This week
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const thisWeek = workouts.filter(
+    (w) => new Date(w.completed_at) > weekAgo,
+  ).length;
+
+  // Streak
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const workoutDays = workouts.map((w) => {
+    const d = new Date(w.completed_at);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  });
+
+  const uniqueDays = [...new Set(workoutDays)].sort((a, b) => b - a);
+
+  for (let i = 0; i < uniqueDays.length; i++) {
+    const expected = new Date(today);
+    expected.setDate(expected.getDate() - i);
+    if (uniqueDays[i] === expected.getTime()) {
+      streak++;
+    } else break;
+  }
+
+  return { total, thisWeek, streak };
+}

@@ -74,8 +74,6 @@ export default function HistoryScreen() {
       .eq("user_id", userData.id)
       .order("completed_at", { ascending: false });
 
-    console.log("First workout:", JSON.stringify(data?.[0]));
-
     if (!error && data) setWorkouts(data as unknown as Workout[]);
     setLoading(false);
   };

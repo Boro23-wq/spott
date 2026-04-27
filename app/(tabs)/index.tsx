@@ -14,6 +14,7 @@ import Button from "../../components/ui/Button";
 import { useWorkout } from "../../lib/context/WorkoutContext";
 import { useUser } from "@clerk/clerk-expo";
 import { getRoutines, deleteRoutine } from "../../lib/api/routines";
+import { getUserStats } from "../../lib/api/workouts";
 import { Ionicons } from "@expo/vector-icons";
 
 type Routine = {
@@ -36,6 +37,7 @@ export default function HomeScreen() {
   const { user } = useUser();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, thisWeek: 0, streak: 0 });
 
   const greeting = () => {
     const hour = new Date().getHours();
@@ -52,9 +54,18 @@ export default function HomeScreen() {
     setLoading(false);
   };
 
+  const loadStats = async () => {
+    if (!user) return;
+    const statsData = await getUserStats(user.id);
+    if (statsData) {
+      setStats(statsData);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       loadRoutines();
+      loadStats();
     }, [user]),
   );
 
@@ -99,6 +110,21 @@ export default function HomeScreen() {
         title={isActive ? "Resume Workout" : "Start Empty Workout"}
         onPress={handleStartWorkout}
       />
+
+      <View style={styles.statsRow}>
+        <Card style={styles.statCard}>
+          <Text style={styles.statNumber}>{stats.total}</Text>
+          <Text style={styles.statLabel}>Total</Text>
+        </Card>
+        <Card style={styles.statCard}>
+          <Text style={styles.statNumber}>{stats.thisWeek}</Text>
+          <Text style={styles.statLabel}>This Week</Text>
+        </Card>
+        <Card style={styles.statCard}>
+          <Text style={styles.statNumber}>{stats.streak}</Text>
+          <Text style={styles.statLabel}>Streak</Text>
+        </Card>
+      </View>
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>My Routines</Text>
@@ -201,4 +227,8 @@ const styles = StyleSheet.create({
   startRoutineText: { color: "#FFFFFF", fontWeight: "600", fontSize: 14 },
   cardTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
   cardSubtitle: { color: "#6B6B6B", fontSize: 14, marginTop: 8 },
+  statsRow: { flexDirection: "row", gap: 8, marginVertical: 20 },
+  statCard: { flex: 1, alignItems: "center" },
+  statNumber: { color: "#FF6B6B", fontSize: 24, fontWeight: "bold" },
+  statLabel: { color: "#6B6B6B", fontSize: 12, marginTop: 4 },
 });

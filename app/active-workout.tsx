@@ -113,11 +113,10 @@ export default function ActiveWorkoutScreen() {
   };
 
   const handleEndWorkout = () => {
-    Alert.alert("End Workout", "Save and end this workout?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert("End Workout", "What would you like to do?", [
+      { text: "Keep Going", style: "cancel" },
       {
-        text: "End",
-        style: "destructive",
+        text: "Save & End",
         onPress: async () => {
           try {
             if (user && exercises.length > 0) {
@@ -129,6 +128,14 @@ export default function ActiveWorkoutScreen() {
             endWorkout();
             router.back();
           }
+        },
+      },
+      {
+        text: "Discard Workout",
+        style: "destructive",
+        onPress: () => {
+          endWorkout();
+          router.back();
         },
       },
     ]);

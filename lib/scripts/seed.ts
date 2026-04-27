@@ -30,7 +30,9 @@ async function seed() {
       .values({
         name: exercise.name,
         category: exercise.category,
-        equipment: exercise.equipment?.[0] || "none",
+        equipment: Array.isArray(exercise.equipment)
+          ? exercise.equipment[0] || "none"
+          : exercise.equipment || "none",
         primaryMuscles: exercise.primaryMuscles || [],
         secondaryMuscles: exercise.secondaryMuscles || [],
         instructions: exercise.instructions || [],
